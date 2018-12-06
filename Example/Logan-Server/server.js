@@ -27,6 +27,7 @@ const crypto = require('crypto');
 const zlib = require('zlib');
 const path = require('path')
 const moment = require('moment')
+const md5 = require('blueimp-md5')
 
 const app = express();
 
@@ -52,8 +53,8 @@ app.post('/logupload', (req, res) => {
     fs.unlinkSync('./log-demo.txt');
   }
   const who = {
-    storeId: req.get('StoreId'),
-    deviceNo: req.get('Deviceno')
+    storeId: req.get('StoreId') || 0,
+    deviceNo: md5(req.get('Deviceno'))
   }
   // decode log
   decodeLog(req.body, 0, who);
@@ -132,7 +133,7 @@ const decodeLog = (buf, skips, who) => {
   } else {
     var text = fs.readFileSync(path.resolve(__dirname, './log-demo.txt'), 'utf-8')
     const replaceText = text.replace(new RegExp('\0', 'g'), '')
-    const logName = 'Logan-' + (who.storeId || who.deviceNo) + '-' + moment().format('YYYY-MM-DD') + '.txt'
+    const logName = 'Logan-' + who.storeId + '-' + who.deviceNo + '-' + moment().format('YYYY-MM-DD') + '.txt'
     fs.writeFile(path.resolve(__dirname, './' + logName), replaceText, { flag: 'w+'}, function (err) {
       if (err) {
         console.log('生成文件错误!', err)
