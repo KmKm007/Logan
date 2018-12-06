@@ -25,6 +25,8 @@ const bodyParser = require('body-parser');
 const fs = require('fs');
 const crypto = require('crypto');
 const zlib = require('zlib');
+const path = require('path')
+const moment = require('moment')
 
 const app = express();
 
@@ -119,7 +121,20 @@ const decodeLog = (buf, skips) => {
     } else {
       decodeLog(buf, skips);
     }
+  } else {
+    var text = fs.readFileSync(path.resolve(__dirname, './log-demo.txt'), 'utf-8')
+    const replaceText = text.replace(new RegExp('\0', 'g'), '')
+    const logName = 'Logan-' + moment().format('YYYY-MM-DD') + '.txt'
+    fs.writeFile(path.resolve(__dirname, './' + logName), replaceText, { flag: 'w+'}, function (err) {
+      if (err) {
+        console.log(err)
+      } else {
+        if (fs.existsSync('./log-demo.txt')) {
+          fs.unlinkSync('./log-demo.txt');
+        }
+      }
+    })
   }
 };
 
-app.listen(3000, () => console.log('Logan demo server listening on port 3000!'));
+app.listen(5000, () => console.log('Logan demo server listening on port 5000!'));
