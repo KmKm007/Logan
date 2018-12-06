@@ -30,6 +30,10 @@ const moment = require('moment')
 
 const app = express();
 
+const config = {
+  port: 4000
+}
+
 app.use(bodyParser.raw({
   type: 'binary/octet-stream',
   limit: '10mb'
@@ -47,14 +51,18 @@ app.post('/logupload', (req, res) => {
   if (fs.existsSync('./log-demo.txt')) {
     fs.unlinkSync('./log-demo.txt');
   }
+  const who = {
+    storeId: req.get('StoreId'),
+    deviceNo: req.get('Deviceno')
+  }
   // decode log
-  decodeLog(req.body, 0);
+  decodeLog(req.body, 0, who);
   // haha
   console.log('decode log file complete');
   res.json({ success: true });
 });
 
-const decodeLog = (buf, skips) => {
+const decodeLog = (buf, skips, who) => {
   if (skips < buf.length) {
     const start = buf.readUInt8(skips);
     skips++;
@@ -67,7 +75,7 @@ const decodeLog = (buf, skips) => {
       skips += 4;
       if (skips + contentLen > buf.length) {
         skips -= 4;
-        decodeLog(buf, skips);
+        decodeLog(buf, skips, who);
         return;
       }
       const content = buf.slice(skips, skips + contentLen);
@@ -108,26 +116,26 @@ const decodeLog = (buf, skips) => {
           console.log(err);
           // unzip error, continue recursion
           fs.unlinkSync('./log-demo.gz')
-          decodeLog(buf, skips);
+          decodeLog(buf, skips, who);
         }).pipe(gout).on('finish', (src) => {
           console.log('write finish');
           // write complete, continue recursion
           fs.unlinkSync('./log-demo.gz')
-          decodeLog(buf, skips);
+          decodeLog(buf, skips, who);
         }).on('error', (err) => {
           console.log(err);
         });
       });
     } else {
-      decodeLog(buf, skips);
+      decodeLog(buf, skips, who);
     }
   } else {
     var text = fs.readFileSync(path.resolve(__dirname, './log-demo.txt'), 'utf-8')
     const replaceText = text.replace(new RegExp('\0', 'g'), '')
-    const logName = 'Logan-' + moment().format('YYYY-MM-DD') + '.txt'
+    const logName = 'Logan-' + (who.storeId || who.deviceNo) + '-' + moment().format('YYYY-MM-DD') + '.txt'
     fs.writeFile(path.resolve(__dirname, './' + logName), replaceText, { flag: 'w+'}, function (err) {
       if (err) {
-        console.log(err)
+        console.log('生成文件错误!', err)
       } else {
         if (fs.existsSync('./log-demo.txt')) {
           fs.unlinkSync('./log-demo.txt');
@@ -137,4 +145,4 @@ const decodeLog = (buf, skips) => {
   }
 };
 
-app.listen(5000, () => console.log('Logan demo server listening on port 5000!'));
+app.listen(config.port, () => console.log(`Logan demo server listening on port ${config.port}!`));
