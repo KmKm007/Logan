@@ -90,7 +90,14 @@ const decodeLog = (buf, skips, who) => {
       console.log('decrypt complete');
       // padding
       const padding1 = decoded.readUInt8(decoded.length - 1);
-      const padding2 = decoded.readUInt8(decoded.length - 2);
+      let padding2
+      try {
+        padding2 = decoded.readUInt8(decoded.length - 2);
+      } catch (e) {
+        padding2 = padding1
+        console.log('decoded长度为' + decoded.length + ',padding1为' + padding1 )
+        console.error(e)
+      }
       let padding = 0;
       if (padding1 > 1 && padding1 === padding2) {
         padding = padding1;
