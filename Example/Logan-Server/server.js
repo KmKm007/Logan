@@ -128,7 +128,9 @@ const decodeLog = (buf, skips, who) => {
         }).pipe(gout).on('finish', (src) => {
           console.log('write finish');
           // write complete, continue recursion
-          fs.unlinkSync('./log-demo.gz')
+          if (fs.existsSync('./log-demo.gz')) {
+            fs.unlinkSync('./log-demo.gz')
+          }
           decodeLog(buf, skips, who);
         }).on('error', (err) => {
           console.log(err);
