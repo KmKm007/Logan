@@ -96,7 +96,7 @@ const decodeLog = (buf, skips, who) => {
         padding2 = decoded.readUInt8(decoded.length - 2);
       } catch (e) {
         console.log('decoded长度为' + decoded.length)
-        console.error(e)
+        console.log(e)
       }
       let padding = 0;
       if (padding1 > 1 && padding1 === padding2) {
