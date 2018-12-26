@@ -89,13 +89,13 @@ const decodeLog = (buf, skips, who) => {
       const decoded = Buffer.concat([decodedBuf, finalBuf]);
       console.log('decrypt complete');
       // padding
-      const padding1 = decoded.readUInt8(decoded.length - 1);
-      let padding2
+      let padding1 = 0
+      let padding2 = 0
       try {
+        padding1 = decoded.readUInt8(decoded.length - 1);
         padding2 = decoded.readUInt8(decoded.length - 2);
       } catch (e) {
-        padding2 = padding1
-        console.log('decoded长度为' + decoded.length + ',padding1为' + padding1 )
+        console.log('decoded长度为' + decoded.length)
         console.error(e)
       }
       let padding = 0;
