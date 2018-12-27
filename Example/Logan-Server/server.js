@@ -124,16 +124,13 @@ const decodeLog = (buf, skips, who) => {
         const inp = fs.createReadStream('./log-demo.gz');
         const gout = fs.createWriteStream('./log-demo.txt', { flags: 'a' });
         inp.pipe(unzip).on('error', (err) => {
-          console.log(err);
           // unzip error, continue recursion
           fs.unlinkSync('./log-demo.gz')
           decodeLog(buf, skips, who);
         }).pipe(gout).on('finish', (src) => {
           console.log('write finish');
           // write complete, continue recursion
-          if (fs.existsSync('./log-demo.gz')) {
-            fs.unlinkSync('./log-demo.gz')
-          }
+          fs.unlinkSync('./log-demo.gz')
           decodeLog(buf, skips, who);
         }).on('error', (err) => {
           console.log(err);
