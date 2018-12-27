@@ -91,6 +91,9 @@ const decodeLog = (buf, skips, who) => {
       // padding
       let padding1 = 0
       let padding2 = 0
+      if (decoded.length === 0) {
+        return
+      }
       try {
         padding1 = decoded.readUInt8(decoded.length - 1);
         padding2 = decoded.readUInt8(decoded.length - 2);
