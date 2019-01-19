@@ -57,7 +57,7 @@ app.post('/logupload', (req, res) => {
     deviceNo: md5(req.get('Deviceno')),
     versionName: req.get('VersionName')
   }
-  if (!versionName) {
+  if (!who.versionName) {
     who.appType = null
   } else {
     if (who.versionName.match(/[a-z]/g) !== null) {
