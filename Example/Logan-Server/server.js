@@ -60,7 +60,7 @@ app.post('/logupload', (req, res) => {
   if (!versionName) {
     who.appType = null
   } else {
-    if (who.versionName.match(/[a-z]/g) === null) {
+    if (who.versionName.match(/[a-z]/g) !== null) {
       who.appType = 'assis_hd'
     } else {
       who.appType = 'print_service'
