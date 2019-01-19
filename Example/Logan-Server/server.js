@@ -54,7 +54,17 @@ app.post('/logupload', (req, res) => {
   }
   const who = {
     storeId: req.get('StoreId') || 0,
-    deviceNo: md5(req.get('Deviceno'))
+    deviceNo: md5(req.get('Deviceno')),
+    versionName: req.get('VersionName')
+  }
+  if (!versionName) {
+    who.appType = null
+  } else {
+    if (who.versionName.match(/[a-z]/g) === null) {
+      who.appType = 'assis_hd'
+    } else {
+      who.appType = 'print_service'
+    }
   }
   // decode log
   decodeLog(req.body, 0, who);
@@ -142,7 +152,7 @@ const decodeLog = (buf, skips, who) => {
   } else {
     var text = fs.readFileSync(path.resolve(__dirname, './log-demo.txt'), 'utf-8')
     const replaceText = text.replace(new RegExp('\0', 'g'), '')
-    const logName = 'Logan-' + who.storeId + '-' + who.deviceNo + '-' + moment().format('YYYY-MM-DD') + '.txt'
+    const logName = 'Logan-' + who.storeId + '-' + who.deviceNo + '-' + who.appType + '-' + moment().format('YYYY-MM-DD') + '.txt'
     fs.writeFile(path.resolve(__dirname, './' + logName), replaceText, { flag: 'w+'}, function (err) {
       if (err) {
         console.log('生成文件错误!', err)
