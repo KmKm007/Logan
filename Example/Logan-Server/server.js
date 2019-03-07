@@ -51,8 +51,10 @@ app.post('/logupload', (req, res) => {
   if (!req.body) {
     return res.sendStatus(400);
   }
-  if (fs.existsSync('./log-demo.txt')) {
-    fs.unlinkSync('./log-demo.txt');
+  const random = md5(Date.now() + Math.random())
+  const tempName = 'log-demo' + '_' + random
+  if (fs.existsSync(`./${tempName}.txt`)) {
+    fs.unlinkSync(`./${tempName}.txt`);
   }
 
   const key = req.get('AccessKey')
@@ -127,22 +129,22 @@ const decodeLog = (buf, skips, who) => {
       }
 
       // flush
-      let wstream = fs.createWriteStream('./log-demo.gz');
+      let wstream = fs.createWriteStream(`./${tempName}.gz`);
       wstream.write(realContent);
       wstream.end();
       wstream.on('finish', () => {
         // unzip
         const unzip = zlib.createGunzip();
-        const inp = fs.createReadStream('./log-demo.gz');
-        const gout = fs.createWriteStream('./log-demo.txt', { flags: 'a' });
+        const inp = fs.createReadStream(`./${tempName}.gz`);
+        const gout = fs.createWriteStream(`./${tempName}.txt`, { flags: 'a' });
         inp.pipe(unzip).on('error', (err) => {
           // unzip error, continue recursion
-          fs.unlinkSync('./log-demo.gz')
+          fs.unlinkSync(`./${tempName}.gz`)
           decodeLog(buf, skips, who);
         }).pipe(gout).on('finish', (src) => {
           console.log('write finish');
           // write complete, continue recursion
-          fs.unlinkSync('./log-demo.gz')
+          fs.unlinkSync(`./${tempName}.gz`)
           decodeLog(buf, skips, who);
         }).on('error', (err) => {
           console.log(err);
@@ -152,15 +154,15 @@ const decodeLog = (buf, skips, who) => {
       decodeLog(buf, skips, who);
     }
   } else {
-    var text = fs.readFileSync(path.resolve(__dirname, './log-demo.txt'), 'utf-8')
+    var text = fs.readFileSync(path.resolve(__dirname, `./${tempName}.txt`), 'utf-8')
     const replaceText = text.replace(new RegExp('\0', 'g'), '')
     const logName = 'Logan-' + who.storeId + '-' + who.deviceNo + '-' + who.app + '-' + moment().format('YYYY-MM-DD') + '.txt'
     fs.writeFile(path.resolve(__dirname, './' + logName), replaceText, { flag: 'w+'}, function (err) {
       if (err) {
         console.log('生成文件错误!', err)
       } else {
-        if (fs.existsSync('./log-demo.txt')) {
-          fs.unlinkSync('./log-demo.txt');
+        if (fs.existsSync(`./${tempName}.txt`)) {
+          fs.unlinkSync(`./${tempName}.txt`);
         }
       }
     })
