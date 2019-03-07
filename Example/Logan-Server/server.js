@@ -71,13 +71,13 @@ app.post('/logupload', (req, res) => {
     app
   }
   // decode log
-  decodeLog(req.body, 0, who);
+  decodeLog(req.body, 0, who, tempName);
   // haha
   console.log('decode log file complete');
   res.json({ success: true });
 });
 
-const decodeLog = (buf, skips, who) => {
+const decodeLog = (buf, skips, who, tempName) => {
   if (skips < buf.length) {
     const start = buf.readUInt8(skips);
     skips++;
@@ -90,7 +90,7 @@ const decodeLog = (buf, skips, who) => {
       skips += 4;
       if (skips + contentLen > buf.length) {
         skips -= 4;
-        decodeLog(buf, skips, who);
+        decodeLog(buf, skips, who, tempName);
         return;
       }
       const content = buf.slice(skips, skips + contentLen);
@@ -140,18 +140,18 @@ const decodeLog = (buf, skips, who) => {
         inp.pipe(unzip).on('error', (err) => {
           // unzip error, continue recursion
           fs.unlinkSync(`./${tempName}.gz`)
-          decodeLog(buf, skips, who);
+          decodeLog(buf, skips, who, tempName);
         }).pipe(gout).on('finish', (src) => {
           console.log('write finish');
           // write complete, continue recursion
           fs.unlinkSync(`./${tempName}.gz`)
-          decodeLog(buf, skips, who);
+          decodeLog(buf, skips, who, tempName);
         }).on('error', (err) => {
           console.log(err);
         });
       });
     } else {
-      decodeLog(buf, skips, who);
+      decodeLog(buf, skips, who, tempName);
     }
   } else {
     var text = fs.readFileSync(path.resolve(__dirname, `./${tempName}.txt`), 'utf-8')
