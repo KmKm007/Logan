@@ -39,7 +39,7 @@ const config = {
 
 app.use(bodyParser.raw({
   type: 'binary/octet-stream',
-  limit: '10mb'
+  limit: '100mb'
 }));
 
 app.get('/', (req, res) => {
