@@ -48,6 +48,21 @@ app.get('/', (req, res) => {
 
 app.post('/logupload', (req, res) => {
   console.log('Logan client upload log file');
+  if (req.get('X-Session-ID')) {
+    var file=path.resolve("/www/web/upload_resumable/" + req.get('X-Session-ID'));
+    req.body=new Buffer(0);//累计合并读取片段
+    fs.readFile(file,function(err,chunk){
+      req.body=Buffer.concat([req.body,chunk]);
+
+      manage(req, res);
+    })
+  } else {
+    manage(req, res);
+  }
+
+});
+
+const manage = (req, res) => {
   if (!req.body) {
     return res.sendStatus(400);
   }
@@ -70,14 +85,16 @@ app.post('/logupload', (req, res) => {
     deviceNo: md5(req.get('Deviceno')),
     app
   }
+console.log(who)
   // decode log
   decodeLog(req.body, 0, who, tempName);
   // haha
   console.log('decode log file complete');
   res.json({ success: true });
-});
+};
 
 const decodeLog = (buf, skips, who, tempName) => {
+  console.log("\nskips and buf.lengt", skips, buf.length);
   if (skips < buf.length) {
     const start = buf.readUInt8(skips);
     skips++;
@@ -106,6 +123,7 @@ const decodeLog = (buf, skips, who, tempName) => {
       let padding1 = 0
       let padding2 = 0
       if (decoded.length === 0) {
+        end(tempName, who);
         return
       }
       try {
@@ -154,6 +172,11 @@ const decodeLog = (buf, skips, who, tempName) => {
       decodeLog(buf, skips, who, tempName);
     }
   } else {
+    end(tempName, who);
+  }
+};
+
+const end = (tempName, who) => {
     var text = fs.readFileSync(path.resolve(__dirname, `./${tempName}.txt`), 'utf-8')
     const replaceText = text.replace(new RegExp('\0', 'g'), '')
     const logName = 'Logan-' + who.storeId + '-' + who.deviceNo + '-' + who.app + '-' + moment().format('YYYY-MM-DD') + '.txt'
@@ -166,7 +189,6 @@ const decodeLog = (buf, skips, who, tempName) => {
         }
       }
     })
-  }
 };
 
 app.listen(config.port, () => console.log(`Logan demo server listening on port ${config.port}!`));
